@@ -53,7 +53,7 @@
                     <th>Aksi</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="invoiceTableBody">
                 @foreach ($invoices as $index => $invoice)
                 <tr class="{{ $invoice->trashed() ? 'table-secondary' : '' }}">
 
@@ -97,6 +97,45 @@
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function refreshInvoiceTable() {
+    fetch("{{ route('admin.invoices.fetch') }}")
+        .then(response => response.json())
+        .then(result => {
+            const tbody = document.getElementById('invoiceTableBody');
+            tbody.innerHTML = '';
+
+            result.data.forEach((invoice, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${invoice.vendor_name}</td>
+                        <td>${invoice.invoice_receipt_number}</td>
+                        <td>${invoice.uploader_name}</td>
+                        <td>
+                            <a href="{{ route('admin.invoices.download', ':id') }}" class="btn btn-sm btn-primary rounded-pill" data-id="${invoice.id}">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </td>
+                        <td>${new Date(invoice.created_at).toLocaleDateString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+
+            const downloadLinks = document.querySelectorAll('#invoiceTableBody .btn.btn-sm.btn-primary.rounded-pill');
+            downloadLinks.forEach(link => {
+                link.onclick = () => {
+                    window.location.href = link.getAttribute('href').replace(':id', link.getAttribute('data-id'));
+                }
+            });
+        });
+}
+
+// Auto refresh setiap 10 detik
+setInterval(refreshInvoiceTable, 10000);
+</script>
+
 
 <script>
 function sortTable(columnIndex, header) {

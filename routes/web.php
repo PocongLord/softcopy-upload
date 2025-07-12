@@ -48,13 +48,18 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/admin/invoices/export', [InvoiceController::class, 'export'])->name('admin.invoices.export');
     Route::post('/admin/invoices/{id}/done', [InvoiceController::class, 'markAsDone'])->name('admin.invoices.done');
     Route::delete('/admin/invoices/{id}', [InvoiceController::class, 'destroy'])->name('admin.invoices.destroy');
+    Route::get('/admin/invoices/fetch', [InvoiceController::class, 'fetchInvoicesAdmin'])->name('admin.invoices.fetch');
 });
 
 
 Route::middleware('auth')->group(function () {
     // Route user untuk melihat & download file invoice
     Route::get('/invoices/download/{invoice}', [InvoiceController::class, 'userDownload'])->name('invoices.download');
+    // Route untuk fetch data invoice
+    Route::get('/api/invoices', [InvoiceController::class, 'fetchInvoices'])->name('invoices.fetch');
 });
 
+
 require __DIR__.'/auth.php';
+
 

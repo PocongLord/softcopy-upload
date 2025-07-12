@@ -66,7 +66,7 @@ class InvoiceController extends Controller
 }
 
 
-public function userDownload(\App\Models\Invoice $invoice)
+public function userDownload(Invoice $invoice)
 {
     if ($invoice->user_id !== Auth::id()) {
         abort(403, 'Akses ditolak');
@@ -130,6 +130,35 @@ public function destroy($id)
 public function download(\App\Models\Invoice $invoice)
 {
     return Storage::disk('public')->download($invoice->file_path);
+}
+
+
+public function fetchInvoices()
+{
+    $invoices = Invoice::withTrashed()
+        ->where('user_id', auth()->id())
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return response()->json([
+        'data' => $invoices
+    ]);
+}
+
+public function fetchInvoicesAdmin(Request $request)
+{
+    $search = $request->input('search');
+
+    $invoices = Invoice::withTrashed()
+        ->when($search, function ($query, $search) {
+            $query->where('vendor_name', 'like', "%{$search}%")
+                  ->orWhere('invoice_receipt_number', 'like', "%{$search}%")
+                  ->orWhere('uploader_name', 'like', "%{$search}%");
+        })
+        ->orderByDesc('created_at')
+        ->get();
+
+    return response()->json(['data' => $invoices]);
 }
 
 
